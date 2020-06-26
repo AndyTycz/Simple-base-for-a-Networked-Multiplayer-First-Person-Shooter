@@ -4,7 +4,6 @@
 #include "ExitZone.h"
 #include "Components/BoxComponent.h"
 #include "TPCharacter.h"
-#include "UE4_GameTPGameMode.h"
 
 // Sets default values
 AExitZone::AExitZone()
@@ -37,10 +36,10 @@ void AExitZone::BoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	ATPCharacter* MyPawn = Cast<ATPCharacter>(OtherActor);
 	if (MyPawn) // && MyPawn->>bCanExitZone)
 	{
-		AUE4_GameTPGameMode* GM = Cast<AUE4_GameTPGameMode>(GetWorld()->GetAuthGameMode());
-		if (GM)
-		{
-			GM->EndGame(MyPawn);
-		}
+		//AUE4_GameTPGameMode* GM = Cast<AUE4_GameTPGameMode>(GetWorld()->GetAuthGameMode());
+		//if (GM)
+		//{
+			//GM->EndGame(MyPawn);
+		//}
 	}
 }

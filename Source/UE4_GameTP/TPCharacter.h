@@ -8,6 +8,7 @@
 
 class UInputComponent;
 class AWeapon_Hitscan;
+class AWeapon_Projectile;
 class UHealthComponent;
 
 UCLASS()
@@ -77,8 +78,19 @@ protected:
 	UPROPERTY(Replicated)
 		AWeapon_Hitscan* CurrentHSWeapon;
 
+	UPROPERTY(Replicated)
+		AWeapon_Projectile* CurrentProjectileWeapon;
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<AWeapon_Projectile> ProjectileWeapon;
+
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AWeapon_Hitscan> StartWeapon;
+
+	UFUNCTION()
+		void OnChangeWeapon();
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+		bool bCanShootSecondary;
 
 	UFUNCTION()
 		void OnHealthChanged(UHealthComponent* HealtComp, float Health, float HealthChange, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

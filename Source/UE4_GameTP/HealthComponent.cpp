@@ -42,10 +42,9 @@ void UHealthComponent::TakeAnyDamage(AActor * DamagedActor, float Damage, const 
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, TotalHealth);
 
-	UE_LOG(LogTemp, Warning, TEXT("Health Changed to: %s"), *FString::SanitizeFloat(CurrentHealth));
+	//UE_LOG(LogTemp, Warning, TEXT("Health Changed to: %s"), *FString::SanitizeFloat(CurrentHealth));
 
-	if (GetOwnerRole() == ROLE_Authority)
-		OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser); //Cuando recibo daño, hago un broadcast al macro para poder usarlo en BP o donde sea
+	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser); //Cuando recibo daño, hago un broadcast al macro para poder usarlo en BP o donde sea
 }
 
 

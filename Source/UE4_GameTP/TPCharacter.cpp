@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon_Hitscan.h"
+#include "Weapon_Projectile.h"
 
 // Sets default values
 ATPCharacter::ATPCharacter()
@@ -73,6 +74,17 @@ void ATPCharacter::BeginPlay()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+
+		CurrentProjectileWeapon = GetWorld()->SpawnActor<AWeapon_Projectile>(ProjectileWeapon, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		if (CurrentProjectileWeapon)
+		{
+			CurrentProjectileWeapon->SetOwner(this);
+			CurrentProjectileWeapon->SetInstigator(this);
+			CurrentProjectileWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "GripPoint");
+			CurrentProjectileWeapon->SetActorHiddenInGame(true);
+			bCanShootSecondary = false;
+
+		}
 		CurrentHSWeapon = GetWorld()->SpawnActor<AWeapon_Hitscan>(StartWeapon, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		if (CurrentHSWeapon)
 		{
@@ -100,7 +112,7 @@ void ATPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATPCharacter::OnFire);
-
+	PlayerInputComponent->BindAction("Change Weapon", IE_Pressed, this, &ATPCharacter::OnChangeWeapon);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &ATPCharacter::MoveForward);
@@ -136,12 +148,28 @@ void ATPCharacter::OnFire()
 		}
 	}
 
-	if (CurrentHSWeapon)
+	if (!bCanShootSecondary)
 	{
-		CurrentHSWeapon->Fire();
+		if (CurrentHSWeapon)
+		{
+			CurrentHSWeapon->Fire();
+		}
+	}
+	else
+	{
+		if (CurrentProjectileWeapon)
+		{
+			CurrentProjectileWeapon->Fire();
+		}
 	}
 }
 
+void ATPCharacter::OnChangeWeapon()
+{
+
+	bCanShootSecondary = !bCanShootSecondary;
+
+}
 
 void ATPCharacter::MoveForward(float Value)
 {
@@ -193,13 +221,18 @@ void ATPCharacter::OnHealthChanged(UHealthComponent* HealtComp, float Health, fl
 	{
 		//i ded
 		bDied = true;
+		CurrentHSWeapon->SetHidden(true);
+		CurrentProjectileWeapon->SetHidden(true);
+
 		//GetMovementComponent()->StopMovementImmediately();
+		Mesh3P->SetCollisionProfileName(TEXT("Ragdoll"));
+		SetActorEnableCollision(true);
 		Mesh3P->SetAllBodiesSimulatePhysics(true);
 		Mesh3P->SetSimulatePhysics(true);
 		Mesh3P->WakeAllRigidBodies();
+		Mesh3P->bBlendPhysics = true;
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		CurrentHSWeapon->SetHidden(true);
 
 		LifeCount--;
 
@@ -220,5 +253,7 @@ void ATPCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, CurrentHSWeapon);
+	DOREPLIFETIME(ThisClass, CurrentProjectileWeapon);
 	DOREPLIFETIME(ThisClass, bDied);
+	DOREPLIFETIME(ThisClass, bCanShootSecondary);
 }
