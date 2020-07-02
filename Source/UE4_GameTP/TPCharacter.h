@@ -97,10 +97,14 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 		bool bDied;
-
-	int LifeCount;
+	UPROPERTY(Replicated)
+		int LifeCount;
 
 public:
+
+
+	int GetLifeCount() const;
+	void SetLifeCount(int RemoveLifeAmount);
 
 	void UpdatePlayerScore(float Score);
 

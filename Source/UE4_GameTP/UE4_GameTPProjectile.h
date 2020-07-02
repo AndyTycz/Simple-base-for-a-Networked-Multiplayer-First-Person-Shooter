@@ -20,12 +20,17 @@ class AUE4_GameTPProjectile : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		class UProjectileMovementComponent* ProjectileMovement;
 
+	UPROPERTY(EditDefaultsOnly, Replicated)
+		float ProjectileDamage;
 
-	float ProjectileDamage;
+	UPROPERTY(EditDefaultsOnly, Replicated)
+		float ProjectileDamageHead;
 
-	float ProjectileDamageHead;
+	UPROPERTY(EditDefaultsOnly, Replicated)
+		float ProjectileDamageLimbs;
 
-	float ProjectileDamageLimbs;
+	UPROPERTY(EditDefaultsOnly, Replicated)
+		float ProjectileDamageEnemy;
 
 public:
 	AUE4_GameTPProjectile();

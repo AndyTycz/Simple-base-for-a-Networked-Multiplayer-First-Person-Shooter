@@ -3,6 +3,7 @@
 
 #include "HealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "TPGameMode.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -14,6 +15,7 @@ UHealthComponent::UHealthComponent()
 	// ...
 
 	TotalHealth = 100.f;
+	bIsDead = false;
 
 	SetIsReplicated(true);
 }
@@ -36,15 +38,39 @@ void UHealthComponent::BeginPlay()
 	CurrentHealth = TotalHealth;
 }
 
+void UHealthComponent::OnRep_Health(float OldHealth)
+{
+	float Damage = CurrentHealth - OldHealth;
+
+	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, nullptr, nullptr, nullptr);
+}
+
+
 void UHealthComponent::TakeAnyDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Damage <= 0.0f) return;
+	if (Damage <= 0.0f || bIsDead) return;
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, TotalHealth);
 
+	bIsDead = CurrentHealth <= 0.0f;
 	//UE_LOG(LogTemp, Warning, TEXT("Health Changed to: %s"), *FString::SanitizeFloat(CurrentHealth));
 
 	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser); //Cuando recibo daño, hago un broadcast al macro para poder usarlo en BP o donde sea
+
+	if (CurrentHealth <= 0.0f)
+	{
+		ATPGameMode* GM = Cast<ATPGameMode>(GetWorld()->GetAuthGameMode());
+		if (GM)
+		{
+			GM->OnActorKilled.Broadcast(GetOwner(), InstigatedBy, Damage);
+		}
+	}
+}
+
+
+float UHealthComponent::GetHealth() const
+{
+	return CurrentHealth;
 }
 
 

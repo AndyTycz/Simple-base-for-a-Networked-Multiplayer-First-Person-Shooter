@@ -59,5 +59,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void Fire();
 
-	float GetWeaponDamageMultiplier(int Multiplier);
+	//float GetWeaponDamageMultiplier(int Multiplier, float ProyectileDamage);
 };

@@ -52,14 +52,12 @@ void AWeapon_Projectile::ServerFire_Implementation()
 		FActorSpawnParameters ActorSpawnParams;
 		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ActorSpawnParams.Instigator = Cast<APawn>(GetOwner());
-		AActor* MyOwner = this->GetOwner();
+		AActor* MyOwner = this;
 
 
 		AUE4_GameTPProjectile* NewProjectile = GetWorld()->SpawnActor<AUE4_GameTPProjectile>(ProjectileClass, MuzzlePos, MuzzleRot, ActorSpawnParams);
 		NewProjectile->SetOwner(MyOwner);
-		if (!NewProjectile) return;
 
-		//NewProjectile->SetReplicates(true);
 
 	}
 
@@ -70,20 +68,20 @@ bool AWeapon_Projectile::ServerFire_Validate()
 	return true;
 }
 
-float AWeapon_Projectile::GetWeaponDamageMultiplier(int Multiplier)
-{
-	if (Multiplier == 0)
-	{
-		return BaseDamage * DmgMultiplierTorso;
-	}
-	else if (Multiplier == 1)
-	{
-		return BaseDamage * DmgMultiplierHead;
-	}
-	else if (Multiplier == 2)
-	{
-		return BaseDamage * DmgMultiplierLimbs;
-	}
-
-	return 0;
-}
+//float AWeapon_Projectile::GetWeaponDamageMultiplier(int Multiplier, float ProyectileDamage)
+//{
+//	if (Multiplier == 0)
+//	{
+//		return ProyectileDamage * DmgMultiplierTorso;
+//	}
+//	if (Multiplier == 1)
+//	{
+//		return ProyectileDamage * DmgMultiplierHead;
+//	}
+//	if (Multiplier == 2)
+//	{
+//		return ProyectileDamage * DmgMultiplierLimbs;
+//	}
+//
+//	return ProyectileDamage;
+//}

@@ -224,7 +224,7 @@ void ATPCharacter::OnHealthChanged(UHealthComponent* HealtComp, float Health, fl
 		CurrentHSWeapon->SetHidden(true);
 		CurrentProjectileWeapon->SetHidden(true);
 
-		//GetMovementComponent()->StopMovementImmediately();
+		GetMovementComponent()->StopMovementImmediately();
 		Mesh3P->SetCollisionProfileName(TEXT("Ragdoll"));
 		SetActorEnableCollision(true);
 		Mesh3P->SetAllBodiesSimulatePhysics(true);
@@ -247,6 +247,16 @@ void ATPCharacter::UpdatePlayerScore(float Score)
 	UE_LOG(LogTemp, Warning, TEXT("Player Score is: %f"), PlayerCurrentScore);
 }
 
+int ATPCharacter::GetLifeCount() const
+{
+	return LifeCount;
+}
+void ATPCharacter::SetLifeCount(int RemoveLifeAmount)
+{
+
+	LifeCount = FMath::Clamp(LifeCount - RemoveLifeAmount, 0, 3);
+}
+
 
 void ATPCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -256,4 +266,5 @@ void ATPCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ThisClass, CurrentProjectileWeapon);
 	DOREPLIFETIME(ThisClass, bDied);
 	DOREPLIFETIME(ThisClass, bCanShootSecondary);
+	DOREPLIFETIME(ThisClass, LifeCount);
 }

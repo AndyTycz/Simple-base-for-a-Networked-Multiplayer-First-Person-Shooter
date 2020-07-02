@@ -35,6 +35,7 @@ ARangedEnemy::ARangedEnemy()
 	AttackSphere->SetupAttachment(RootComponent);
 
 	AIController = Cast<AAIController>(GetController());
+	bIsAlive = true;
 }
 
 // Called when the game starts or when spawned
@@ -65,7 +66,7 @@ void ARangedEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsInAttackRange)
+	if (bIsInAttackRange && bCanSeePlayer)
 	{
 		if (PlayerTarget)
 		{
@@ -74,30 +75,52 @@ void ARangedEnemy::Tick(float DeltaTime)
 			SetActorRotation(AimRotation);
 		}
 	}
-
-
 }
 
 
 void ARangedEnemy::OnPawnSeen(APawn * SeenPawn)
 {
-	if (SeenPawn == nullptr) return;
+	if (SeenPawn == nullptr)
+	{
+		PlayerTarget = nullptr;
+		bCanSeePlayer = false;
+		return;
+	}
+
 
 	if (SeenPawn)
 	{
 		ATPCharacter* Player = Cast<ATPCharacter>(SeenPawn);
+
+		if (Player)
 		{
-			if (Player)
-			{
-				PlayerTarget = Player;
-				bIsInAttackRange = true;
+			bCanSeePlayer = true;
+			PlayerTarget = Player;
+			bIsInAttackRange = true;
 
 
-				MoveToTarget(Player);
-			}
+			MoveToTarget(PlayerTarget);
 		}
+
 	}
 
+}
+
+void ARangedEnemy::MoveToTarget(ATPCharacter* Target)
+{
+	if (Role == ROLE_Authority)
+	{
+		if (AIController && bIsAlive)
+		{
+			FAIMoveRequest MoveRequest;
+			MoveRequest.SetGoalActor(Target);
+			MoveRequest.SetAcceptanceRadius(10.f);
+
+			FNavPathSharedPtr NavPath;
+			AIController->MoveTo(MoveRequest, &NavPath);
+
+		}
+	}
 }
 
 void ARangedEnemy::AttackSphereOnOverlapBegin(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -105,7 +128,22 @@ void ARangedEnemy::AttackSphereOnOverlapBegin(UPrimitiveComponent * OverlappedCo
 	if (OtherActor && OtherActor == PlayerTarget)
 	{
 		GetWorld()->GetTimerManager().SetTimer(ShootTimer, this, &ARangedEnemy::AttackPlayer, 1.0f, true, 0.5f);
+
 		bCanShoot = true;
+
+		if (!bCanSeePlayer)
+		{
+			ATPCharacter* Player = Cast<ATPCharacter>(OtherActor);
+			if (Player)
+			{
+				AIController->StopMovement();
+				PlayerTarget = Player;
+				bIsInAttackRange = true;
+				bCanSeePlayer = true;
+
+
+			}
+		}
 	}
 }
 
@@ -120,32 +158,26 @@ void ARangedEnemy::AttackSphereOnOverlapEnd(UPrimitiveComponent * OverlappedComp
 
 }
 
-
-void ARangedEnemy::MoveToTarget(class ATPCharacter* Target)
-{
-	if (AIController)
-		UE_LOG(LogTemp, Warning, TEXT("Me Movi al target"));
-}
-
 void ARangedEnemy::HandleTakeDamage(UHealthComponent * HealtComp, float Health, float HealthChange, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
 
-	if (MatInstance == nullptr)
+	if (bIsAlive)
 	{
+		if (MatInstance == nullptr)
+		{
 
-		MatInstance = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0, GetMesh()->GetMaterial(0));
+			MatInstance = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0, GetMesh()->GetMaterial(0));
+		}
+		if (MatInstance)
+		{
+			MatInstance->SetScalarParameterValue("DamageTakenTimer", GetWorld()->TimeSeconds);
+		}
 	}
-	if (MatInstance)
-	{
-		MatInstance->SetScalarParameterValue("DamageTakenTimer", GetWorld()->TimeSeconds);
-	}
-
-
-
 
 	if (Health <= 0.0f)
 	{
 
+		bIsAlive = false;
 		bCanShoot = false;
 
 		//GetMovementComponent()->StopMovementImmediately();
@@ -156,9 +188,10 @@ void ARangedEnemy::HandleTakeDamage(UHealthComponent * HealtComp, float Health, 
 		GetMesh()->WakeAllRigidBodies();
 		GetMesh()->bBlendPhysics = true;
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-
+		CurrentProjectileWeapon->SetHidden(true);
 		DetachFromControllerPendingDestroy();
+		SetLifeSpan(5.0f);
+
 		SetLifeSpan(10.0f);
 	}
 }
@@ -166,7 +199,7 @@ void ARangedEnemy::HandleTakeDamage(UHealthComponent * HealtComp, float Health, 
 
 void ARangedEnemy::AttackPlayer()
 {
-	if (CurrentProjectileWeapon)
+	if (CurrentProjectileWeapon && bIsAlive)
 	{
 		if (bCanShoot)
 			CurrentProjectileWeapon->Fire();

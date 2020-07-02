@@ -69,7 +69,6 @@ void AWeapon_Hitscan::Fire()
 
 		EPhysicalSurface SurfaceType = EPhysicalSurface(SurfaceType_Default);
 		bHitFlesh = false;
-		float WeaponDamage = BaseDamage;
 		HitScanTrace.NetTraceTo = TraceEnd;
 		HitScanTrace.NetPlayerScore = 0.0f;
 
@@ -77,6 +76,7 @@ void AWeapon_Hitscan::Fire()
 		{
 			AActor* HitActor = Hit.GetActor();
 
+			float WeaponDamage = 15.0f;
 			// Consigo el Phys material de lo que le pego
 			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 			// Consigo pos y roto el VFX de sangre
@@ -87,7 +87,7 @@ void AWeapon_Hitscan::Fire()
 			switch (SurfaceType)
 			{
 			case SurfaceType1: //Torso
-				WeaponDamage *= DmgMultiplierTorso;
+				WeaponDamage = 15.0f;
 				bHitFlesh = true;
 				PlayBloodEffect(TraceEndPosition, TraceRot, bHitFlesh);
 				if (Role == ROLE_Authority)
@@ -97,7 +97,7 @@ void AWeapon_Hitscan::Fire()
 				}
 				break;
 			case SurfaceType2: //Head
-				WeaponDamage *= DmgMultiplierHead;
+				WeaponDamage = 25.0f;
 				bHitFlesh = true;
 				PlayBloodEffect(TraceEndPosition, TraceRot, bHitFlesh);
 				if (Role == ROLE_Authority)
@@ -108,7 +108,7 @@ void AWeapon_Hitscan::Fire()
 				//SendScoreUpdate(ScoreHead, MyOwner);
 				break;
 			case SurfaceType3: //Limbs
-				WeaponDamage *= DmgMultiplierLimbs;
+				WeaponDamage = 8.0f;
 				bHitFlesh = true;
 				PlayBloodEffect(TraceEndPosition, TraceRot, bHitFlesh);
 				if (Role == ROLE_Authority)
@@ -122,7 +122,7 @@ void AWeapon_Hitscan::Fire()
 			default:
 				break;
 			}
-
+			WeaponDamage += BaseDamage;
 			UGameplayStatics::ApplyPointDamage(HitActor, WeaponDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponDamageType);
 		}
 

@@ -18,7 +18,7 @@ class UE4_GAMETP_API UHealthComponent : public UActorComponent
 
 public:
 	// Sets default values for this component's properties
-	UHealthComponent(); 
+	UHealthComponent();
 
 protected:
 	// Called when the game starts
@@ -27,17 +27,20 @@ protected:
 	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly)
 		float TotalHealth;
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
-		float CurrentHealth; 
+	UPROPERTY(ReplicatedUsing = OnRep_Health, BlueprintReadOnly)
+		float CurrentHealth;
+
+	UFUNCTION()
+		void OnRep_Health(float OldHealth);
 
 	UFUNCTION()
 		void TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-
+		bool bIsDead;
 public:
 
 	UPROPERTY(BlueprintAssignable)
 		FOnHealthChangedSignature OnHealthChanged;
 
-
+	float GetHealth() const;
 };

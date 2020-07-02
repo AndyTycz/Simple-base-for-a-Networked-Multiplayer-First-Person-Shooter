@@ -61,7 +61,7 @@ protected:
 	UFUNCTION()
 		void HandleTakeDamage(UHealthComponent* HealtComp, float Health, float HealthChange, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-	UMaterialInstanceDynamic* MatInstance;
+		UMaterialInstanceDynamic* MatInstance;
 
 	void AttackPlayer();
 
@@ -73,6 +73,10 @@ protected:
 	bool bIsInAttackRange;
 
 	bool bCanShoot;
+
+	bool bCanSeePlayer;
+
+	bool bIsAlive;
 
 	ATPCharacter* PlayerTarget;
 

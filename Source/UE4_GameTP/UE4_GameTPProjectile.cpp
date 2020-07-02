@@ -39,6 +39,13 @@ AUE4_GameTPProjectile::AUE4_GameTPProjectile()
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
 
+	ProjectileDamage = 20.f;
+	ProjectileDamageHead = 35.f;
+	ProjectileDamageLimbs = 10.f;
+
+	ProjectileDamageEnemy = 10.f;
+
+
 	bReplicates = true;
 	SetReplicatingMovement(true);
 
@@ -49,24 +56,26 @@ void AUE4_GameTPProjectile::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	//CollisionComp->OnComponentHit.AddDynamic(this, &AUE4_GameTPProjectile::OnHit);		// set up a notification for when this component hits something blocking
 
-	AActor* MyOwner = GetOwner();
+	/*AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
-		ARangedEnemy* EnemyOwner = Cast<ARangedEnemy>(MyOwner);
+		ARangedEnemy* EnemyOwner = Cast<ARangedEnemy>(MyOwner->GetOwner());
 		if (EnemyOwner)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Set enemy damage"));
 			ProjectileDamage = 10.0f;
 		}
 
 		AWeapon_Projectile* PlayerOwner = Cast<AWeapon_Projectile>(MyOwner);
 		if (PlayerOwner)
 		{
-			ProjectileDamage = PlayerOwner->GetWeaponDamageMultiplier(0);
-			ProjectileDamageHead = PlayerOwner->GetWeaponDamageMultiplier(1);
-			ProjectileDamageLimbs = PlayerOwner->GetWeaponDamageMultiplier(2);
+			UE_LOG(LogTemp, Warning, TEXT("Set player damage"));
+			ProjectileDamage = PlayerOwner->GetWeaponDamageMultiplier(0, ProjectileDamage);
+			ProjectileDamageHead = PlayerOwner->GetWeaponDamageMultiplier(1, ProjectileDamage);
+			ProjectileDamageLimbs = PlayerOwner->GetWeaponDamageMultiplier(2, ProjectileDamage);
 		}
 
-	}
+	}*/
 	ProjectileMovement->OnProjectileStop.AddDynamic(this, &AUE4_GameTPProjectile::OnImpact);
 	CollisionComp->MoveIgnoreActors.Add(GetInstigator());
 
@@ -123,13 +132,15 @@ void AUE4_GameTPProjectile::OnImpact(const FHitResult& HitResult)
 			AActor* DamagedActor = HitResult.GetActor();
 			if (DamagedActor)
 			{
-				UGameplayStatics::ApplyPointDamage(DamagedActor, 10.0f, NudgedImpactLocation, HitResult, GetOwner()->GetInstigatorController(), GetOwner(), ProjectileDamageType);
+				UGameplayStatics::ApplyPointDamage(DamagedActor, ProjectileDamageEnemy, NudgedImpactLocation, HitResult, GetOwner()->GetInstigatorController(), GetOwner(), ProjectileDamageType);
 				Destroy();
 			}
 
 		}
 	}
 
+
+	Destroy();
 }
 
 //void AUE4_GameTPProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -195,3 +206,15 @@ void AUE4_GameTPProjectile::OnImpact(const FHitResult& HitResult)
 //	}
 //	Destroy();
 //}
+
+
+void AUE4_GameTPProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, ProjectileDamage);
+	DOREPLIFETIME(ThisClass, ProjectileDamageHead);
+	DOREPLIFETIME(ThisClass, ProjectileDamageLimbs);
+	DOREPLIFETIME(ThisClass, ProjectileDamageEnemy);
+
+}
